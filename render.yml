@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: ar-weather-overlay-clean
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free

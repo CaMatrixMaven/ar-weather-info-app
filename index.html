@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
+  <title>AR Weather Overlay</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="cameraContainer">
+      <video id="cameraFeed" autoplay playsinline muted></video>
+
+      <div id="statusBanner" class="statusBanner">
+        Tap <strong>Start AR</strong> to begin
+      </div>
+
+      <div id="debugPanel" class="debugPanel">
+        <div><strong>Debug</strong></div>
+        <div id="debugText">App booting...</div>
+      </div>
+
+      <div id="arBackdrop" class="hidden" aria-hidden="true"></div>
+
+      <div id="arOverlay" class="hidden" role="dialog" aria-label="AR overlay">
+        <canvas id="arCanvas"></canvas>
+
+        <div id="weatherPanel">
+          <div class="weatherRow">
+            <span id="tempValue">--</span>
+            <span id="humidityValue">Humidity --</span>
+          </div>
+
+          <div class="badgeRow">
+            <span id="cachedBadge" class="badge badge-yellow hidden">cached</span>
+            <span id="approxBadge" class="badge badge-gray hidden">approximate location</span>
+          </div>
+
+          <div id="weatherMessage" class="weatherMessage hidden">
+            Weather data temporarily unavailable
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="controls">
+      <button id="startArBtn" type="button">Start AR</button>
+      <button id="switchCameraBtn" type="button">Switch Camera</button>
+      <button id="stopCameraBtn" type="button">Stop Camera</button>
+    </div>
+  </div>
+
+  <script src="./app.bundle.js"></script>
+</body>
+</html>
