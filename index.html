@@ -4,55 +4,59 @@
   <meta charset="UTF-8" />
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
   />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>AR Weather Overlay</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=20260407b" />
 </head>
 <body>
   <div id="app">
-    <div id="cameraContainer">
-      <video id="cameraFeed" autoplay playsinline muted></video>
+    <video id="cameraFeed" autoplay playsinline muted></video>
 
-      <div id="statusBanner" class="statusBanner">
-        Tap <strong>Start AR</strong> to begin
+    <div id="uiLayer">
+      <div id="topBar">
+        <div id="statusBanner">Loading app...</div>
       </div>
 
-      <div id="debugPanel" class="debugPanel">
-        <div><strong>Debug</strong></div>
-        <div id="debugText">App booting...</div>
+      <div id="controls">
+        <button id="startArBtn" type="button">Start AR</button>
+        <button id="switchCameraBtn" type="button">Switch Camera</button>
+        <button id="stopCameraBtn" type="button">Stop Camera</button>
       </div>
 
-      <div id="arBackdrop" class="hidden" aria-hidden="true"></div>
-
-      <div id="arOverlay" class="hidden" role="dialog" aria-label="AR overlay">
-        <canvas id="arCanvas"></canvas>
-
-        <div id="weatherPanel">
-          <div class="weatherRow">
-            <span id="tempValue">--</span>
-            <span id="humidityValue">Humidity --</span>
-          </div>
-
-          <div class="badgeRow">
-            <span id="cachedBadge" class="badge badge-yellow hidden">cached</span>
-            <span id="approxBadge" class="badge badge-gray hidden">approximate location</span>
-          </div>
-
-          <div id="weatherMessage" class="weatherMessage hidden">
-            Weather data temporarily unavailable
-          </div>
-        </div>
+      <div id="debugPanel">
+        <div class="debug-title">Debug</div>
+        <div id="debugText">Loading script...</div>
       </div>
     </div>
 
-    <div id="controls">
-      <button id="startArBtn" type="button">Start AR</button>
-      <button id="switchCameraBtn" type="button">Switch Camera</button>
-      <button id="stopCameraBtn" type="button">Stop Camera</button>
+    <div id="arBackdrop" class="hidden"></div>
+
+    <div id="arOverlay" class="hidden">
+      <div id="weatherInfo">
+        <div class="weather-line">
+          <span id="tempValue">--</span>
+          <span id="cachedBadge" class="badge hidden">cached</span>
+          <span id="approxBadge" class="badge approx hidden">approximate location</span>
+        </div>
+        <div id="humidityValue">Humidity --</div>
+        <div id="weatherMessage" class="hidden">Weather data temporarily unavailable</div>
+      </div>
+      <canvas id="arCanvas"></canvas>
     </div>
   </div>
 
-  <script src="./app.bundle.js"></script>
+  <script>
+    window.__APP_VERSION__ = "20260407b";
+    console.log("Inline boot OK", window.__APP_VERSION__);
+  </script>
+  <script src="./app.bundle.js?v=20260407b" defer></script>
 </body>
 </html>
