@@ -102,6 +102,39 @@
     return window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   }
 
+  function waitForVideoReady(videoEl, timeout = 4000) {
+    return new Promise((resolve, reject) => {
+      if (videoEl.readyState >= 1) {
+        resolve();
+        return;
+      }
+
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('Video metadata load timeout'));
+      }, timeout);
+
+      function onLoaded() {
+        cleanup();
+        resolve();
+      }
+
+      function onError() {
+        cleanup();
+        reject(new Error('Video metadata failed to load'));
+      }
+
+      function cleanup() {
+        clearTimeout(timer);
+        videoEl.removeEventListener('loadedmetadata', onLoaded);
+        videoEl.removeEventListener('error', onError);
+      }
+
+      videoEl.addEventListener('loadedmetadata', onLoaded, { once: true });
+      videoEl.addEventListener('error', onError, { once: true });
+    });
+  }
+
   async function requestStream(facingMode) {
     if (!supportsMediaDevices()) {
       throw new Error('Camera API not supported in this browser');
@@ -110,6 +143,8 @@
     if (!isSecureEnough()) {
       throw new Error('Camera requires HTTPS / secure context');
     }
+
+    debug(`Requesting camera with facingMode=${facingMode}`);
 
     try {
       return await navigator.mediaDevices.getUserMedia({
@@ -121,7 +156,9 @@
         audio: false
       });
     } catch (err) {
-      debug(`Primary camera request failed, using fallback: ${err.message}`);
+      debug(`Primary camera request failed: ${err.message}`);
+      debug('Retrying with generic video=true fallback');
+
       return navigator.mediaDevices.getUserMedia({
         video: true,
         audio: false
@@ -131,17 +168,42 @@
 
   async function startCamera() {
     if (stream) {
+      debug('Reusing existing camera stream');
       video.srcObject = stream;
-      await video.play();
+      await waitForVideoReady(video).catch(() => {});
+      await video.play().catch(() => {});
       return stream;
     }
 
-    stream = await requestStream(currentFacingMode);
-    video.srcObject = stream;
-    video.setAttribute('playsinline', 'true');
     video.setAttribute('autoplay', 'true');
+    video.setAttribute('playsinline', 'true');
+    video.setAttribute('muted', 'true');
     video.muted = true;
-    await video.play();
+    video.playsInline = true;
+    video.autoplay = true;
+
+    stream = await requestStream(currentFacingMode);
+    debug(`Camera stream acquired with ${stream.getTracks().length} track(s)`);
+
+    video.srcObject = stream;
+
+    await waitForVideoReady(video);
+    debug('Video metadata loaded');
+
+    try {
+      await video.play();
+      debug('Video play() succeeded');
+    } catch (playErr) {
+      debug(`video.play() failed: ${playErr.message}`);
+      throw new Error(`Video playback failed: ${playErr.message}`);
+    }
+
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      debug('Video dimensions invalid after play()');
+      throw new Error('Camera stream started but video is not rendering');
+    }
+
+    debug(`Video active at ${video.videoWidth}x${video.videoHeight}`);
     return stream;
   }
 
@@ -452,6 +514,7 @@
       resetWeatherUI();
 
       debug(`Secure context: ${window.isSecureContext}`);
+      debug(`User agent: ${navigator.userAgent}`);
       debug(`mediaDevices exists: ${!!navigator.mediaDevices}`);
       debug(`getUserMedia exists: ${!!navigator.mediaDevices?.getUserMedia}`);
       debug(`geolocation exists: ${!!navigator.geolocation}`);
