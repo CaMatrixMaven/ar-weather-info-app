@@ -1,3 +1,18 @@
+/*
+Key concepts in this file:
+
+1. Weather fetching pipeline:
+   - requestWeather → normalize → cache → fallback logic
+   - Handles API rate limits (429) with retry + cache fallback
+
+2. AR rendering:
+   - Manual AR Panel projection 
+   
+
+3. Pointer system:
+   - Tracks multiple active pointers for gesture detection
+*/
+
 (function () {
   function byId(id) {
     return document.getElementById(id);
@@ -24,7 +39,7 @@
       !tempValue || !humidityValue || !weatherMessage || !cachedBadge ||
       !approxBadge || !statusBanner || !debugText || !canvas
     ) {
-      alert('App failed to initialize.');
+      alert('App error will not initialize.');
       return;
     }
 
@@ -288,6 +303,10 @@
       };
     }
 
+    // Robust fetch pipeline:
+    // 1. Try live API
+    // 2. Retry on rate limit (429)
+    // 3. Fallback to cached data
     function fetchWeatherWithFallbacks(loc) {
       return requestWeather(loc.lat, loc.lon).then(function (live) {
         var normalized = normalizeWeather(live);
@@ -349,6 +368,7 @@
       });
     }
 
+    // Adjusts canvas resolution for device pixel ratio to keep rendering sharp
     function resizeCanvas() {
       var rect = canvas.getBoundingClientRect();
       var dpr = window.devicePixelRatio || 1;
@@ -357,6 +377,7 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
+    // Projects a Panel onto 2D canvas using a simple perspective projection.
     function drawCube(cx, cy, size, rot) {
       var points = [
         [-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],
@@ -399,6 +420,7 @@
       ctx.stroke();
     }
 
+    // Main animation loop using requestAnimationFrame
     function renderAR() {
       if (!running) return;
       var rect = canvas.getBoundingClientRect();
@@ -417,6 +439,7 @@
       if (rafId) cancelAnimationFrame(rafId);
     }
 
+    // Euclidean distance between two touch points (used for mobile device pinch scaling)
     function getDistance(p1, p2) {
       var dx = p2.x - p1.x;
       var dy = p2.y - p1.y;
@@ -525,7 +548,7 @@
           setStatus('Camera active · Location unavailable');
         });
       }).catch(function (err) {
-        debug('Start failed: ' + (err && err.message ? err.message : err));
+        debug('Start error: ' + (err && err.message ? err.message : err));
         setStatus('Unable to start camera');
         alert('Unable to start AR. Please allow camera and location permissions.');
       }).finally(function () {
@@ -550,7 +573,7 @@
       switchCamera().then(function () {
         setStatus(arOpen ? 'AR active' : 'Camera active');
       }).catch(function (err) {
-        debug('Switch failed: ' + (err && err.message ? err.message : err));
+        debug('Switch error: ' + (err && err.message ? err.message : err));
         alert('Unable to switch camera.');
       });
     }
@@ -570,3 +593,4 @@
     init();
   }
 })();
+
